@@ -14,20 +14,14 @@
 # limitations under the License.
 """Lyrics dataset parsed from Genius"""
 
-
-import csv
 import json
-import os
-import gzip
 
 import datasets
-
 
 _CITATION = """\
 @InProceedings{huggingartists:dataset,
 title = {Lyrics dataset},
-author={Aleksey Korshuk
-},
+author={Aleksey Korshuk},
 year={2021}
 }
 """
@@ -45,6 +39,7 @@ _LICENSE = "All rights belong to copyright holders"
 
 _URL = "https://huggingface.co/datasets/huggingartists/MODEL_NAME/resolve/main/datasets.json"
 
+
 # Name of the dataset
 class LyricsDataset(datasets.GeneratorBasedBuilder):
     """Lyrics dataset"""
@@ -52,20 +47,20 @@ class LyricsDataset(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     def _info(self):
-        # This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
+        # This method specifies the datasets.DatasetInfo object which contains information and typings for the dataset
         features = datasets.Features(
-                {
-                    "text": datasets.Value("string"),
-                }
-            )
+            {
+                "text": datasets.Value("string"),
+            }
+        )
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # This defines the different columns of the dataset and their types
-            features=features,  # Here we define them above because they are different between the two configurations
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
+            # This defines the different columns of the dataset and their types. Here we define them above because they
+            # are different between the two configurations
+            features=features,
+            # If there's a common (input, target) tuple from the features, specify them here. They'll be used if
+            # as_supervised=True in builder.as_dataset.
             supervised_keys=None,
             # Homepage of the dataset for documentation
             homepage=_HOMEPAGE,
@@ -77,12 +72,14 @@ class LyricsDataset(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
-        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
+        # This method is tasked with downloading/extracting the data and defining the splits depending on the
+        # configuration. If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected
+        # by the user is in self.config.name
 
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
-        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
+        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with
+        # path to local files. By default, the archives will be extracted and a path to a cached folder where they are
+        # extracted is returned instead of the archive
 
         data_dir = dl_manager.download_and_extract(_URL)
         return [
@@ -95,13 +92,12 @@ class LyricsDataset(datasets.GeneratorBasedBuilder):
                 },
             ),
         ]
-        
 
     def _generate_examples(self, filepath, split):
         """Yields examples as (key, example) tuples."""
         # This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
-        
+
         with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
-            for id, pred in enumerate(data[split]):
-                yield id, {"text": pred}
+            for id_, pred in enumerate(data[split]):
+                yield id_, {"text": pred}

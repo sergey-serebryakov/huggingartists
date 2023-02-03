@@ -1,0 +1,15 @@
+name: huggingartist
+description: MLCommons Hugging Face Artist MLCube
+
+docker:
+  image: mlcommons/huggingartist:0.0.1
+
+tasks:
+  download:
+    entrypoint: /mlcube/huggingartists/tasks/get_rawdata.py
+    parameters:
+      inputs:
+        data_config: {type: file, default: data.yaml}
+      outputs:
+        data_dir: {type: directory, default: data}
+        log_dir: {type: directory, default: logs}

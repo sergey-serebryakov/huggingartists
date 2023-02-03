@@ -1,0 +1,16 @@
+# Ignore Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Cache folders for pytests
+.pytest_cache/
+
+# Editors, OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

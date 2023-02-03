@@ -1,0 +1,20 @@
+transformers           # Hugging Face: `transformers` provides thousands of pretrained models to perform tasks on
+                       # different modalities such as text, vision, and audio.
+datasets               # Hugging Face: (1) one-line dataloaders for many public datasets and (2) efficient data
+                       # pre-processing.
+huggingface-hub        # Hugging Face: The `huggingface_hub` is a client library to interact with the Hugging Face Hub.
+accelerate             # Hugging Face: run your *raw* PyTorch training script on any kind of device
+
+lyricsgenius  # Provides a simple interface to the song, artist, and lyrics data stored on Genius.com.
+
+torch         # PyTorch Deep Learning framework.
+# wandb         # Tracking ML experiments.
+langdetect    # Language detection library ported from Google's language-detection.
+
+aiohttp       # Async http client/server framework (asyncio).
+tqdm          # Fast, Extensible Progress Meter
+
+jax                                     # JAX is Autograd and XLA, brought together for high-performance machine
+                                        # learning research.
+jaxlib                                  # XLA library for JAX.
+git+https://github.com/google/flax.git  # A neural network library and ecosystem for JAX designed for flexibility.

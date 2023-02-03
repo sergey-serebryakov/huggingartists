@@ -19,7 +19,7 @@ To train with the demo, click on below link and share your results!
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/AlekseyKorshuk/huggingartists/blob/master/huggingartists-demo.ipynb)
 
-You can also use it locally by installing the dependencies with `pipenv` or `pip` and use [`huggingartists-demo.ipynb`](huggingartists-demo.ipynb)
+You can also use it locally by installing the dependencies with `pipenv` or `pip` and use [`huggingartists-demo.ipynb`](demo/huggingartists-demo.ipynb)
 
 ## Results
 
