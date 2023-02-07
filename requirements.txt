@@ -13,6 +13,8 @@ langdetect    # Language detection library ported from Google's language-detecti
 
 aiohttp       # Async http client/server framework (asyncio).
 tqdm          # Fast, Extensible Progress Meter
+furl          # Parsing URLs.
+click         # Parsing command line arguments and run MLCube tasks.
 
 jax                                     # JAX is Autograd and XLA, brought together for high-performance machine
                                         # learning research.

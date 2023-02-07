@@ -1,17 +1,17 @@
-import typing as t
 import argparse
 import asyncio
 import platform
 import re
+import typing as t
 from concurrent.futures import ProcessPoolExecutor
+from pathlib import Path
 
 import aiohttp
 from bs4 import BeautifulSoup
 from datasets import Dataset, DatasetDict
 from tqdm import tqdm as bar
-from pathlib import Path
 
-__all__ = ['create_dataset']
+__all__ = ["create_dataset"]
 
 
 async def get_song_urls(artist_id: int, api_token: str) -> t.List[str]:
@@ -68,7 +68,9 @@ async def fetch_page(url: str, session: aiohttp.ClientSession):
         return await res.text()
 
 
-async def process(url: str, session: aiohttp.ClientSession, pool: ProcessPoolExecutor, pbar: bar):
+async def process(
+    url: str, session: aiohttp.ClientSession, pool: ProcessPoolExecutor, pbar: bar
+):
     html = await fetch_page(url, session)
     pbar.update(1)
     return await asyncio.wrap_future(pool.submit(process_page, html))
@@ -83,16 +85,20 @@ async def parse_lyrics(urls: t.List[str]):
         return await asyncio.gather(*coros)
 
 
-def create_dataset(artist_id: int, api_token: str, save_path: Path, skip_if_exists: bool = True) -> None:
+def create_dataset(
+    artist_id: int, api_token: str, save_path: Path, skip_if_exists: bool = True
+) -> None:
     if save_path.exists():
         if not save_path.is_dir():
-            raise FileExistsError(f"File system path exists ({save_path}) and is not a directory.")
+            raise FileExistsError(
+                f"File system path exists ({save_path}) and is not a directory."
+            )
         if skip_if_exists:
             return
         save_path.unlink()
     save_path.mkdir(parents=True, exist_ok=True)
 
-    if platform.system() == 'Windows':
+    if platform.system() == "Windows":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
     loop = asyncio.get_event_loop()
@@ -108,10 +114,14 @@ def create_dataset(artist_id: int, api_token: str, save_path: Path, skip_if_exis
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Make dataset of artist lyrics downloaded from Genius.")
+    parser = argparse.ArgumentParser(
+        description="Make dataset of artist lyrics downloaded from Genius."
+    )
     parser.add_argument("--artist_id", type=int, help="Artist ID in Genius API.")
     parser.add_argument("--token", type=str, help="Genius API token")
-    parser.add_argument("--save_path", type=str, help="Path where to save the resulting json file")
+    parser.add_argument(
+        "--save_path", type=str, help="Path where to save the resulting json file"
+    )
     args = parser.parse_args()
 
     create_dataset(args.artist_id, args.token, args.save_path)

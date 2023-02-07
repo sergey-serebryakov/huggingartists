@@ -1,5 +1,18 @@
 # HuggingArtists - Train a model to generate lyrics
 
+## MLCube
+
+```shell
+pip install mlcube mlcube-docker
+
+git clone https://github.com/sergey-serebryakov/huggingartists
+mlcube cd ./huggingartists
+git checkout feature/mlcube
+
+mlcube configure -Prunner.build_strategy=auto
+mlcube describe
+```
+
 ## Create AI-Artist in just 5 minutes!
 
 <img src="img/logo.jpg" width="420" align="center">

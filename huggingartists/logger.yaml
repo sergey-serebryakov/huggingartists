@@ -1,0 +1,16 @@
+version: 1
+disable_existing_loggers: true
+formatters:
+  standard:
+    format: "%(asctime)s - %(name)s - %(threadName)s - %(levelname)s - %(message)s"
+handlers:
+  file_handler:
+    class: "logging.FileHandler"
+    level: "INFO"
+    formatter: "standard"
+    filename: "hugging_artist.log"
+loggers:
+  "": {level: "INFO", handlers: ["file_handler"]}
+  create_dataset: {level: "NOTSET", propagate: "yes"}
+  split_dataset: {level: "NOTSET", propagate: "yes"}
+  finetune_model: {level: "NOTSET", propagate: "yes"}

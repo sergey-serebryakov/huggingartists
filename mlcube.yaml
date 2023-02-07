@@ -1,15 +1,36 @@
-name: huggingartist
-description: MLCommons Hugging Face Artist MLCube
+name: "huggingartist"
+description: "MLCommons Hugging Face Artist MLCube"
+
+platform:
+  accelerator_count: 1
+
 
 docker:
-  image: mlcommons/huggingartist:0.0.1
+  image: "mlcommons/huggingartist:0.0.1"
+  gpu_args: '--runtime=nvidia'
+
 
 tasks:
-  download:
-    entrypoint: /mlcube/huggingartists/tasks/get_rawdata.py
+  create_dataset:
+    entrypoint: "python3 /mlcube/huggingartists/tasks/create_dataset.py"
     parameters:
       inputs:
-        data_config: {type: file, default: data.yaml}
+        params: {type: "file", default: "params.yaml"}
       outputs:
-        data_dir: {type: directory, default: data}
-        log_dir: {type: directory, default: logs}
+        workspace_dir: {type: "directory", default: "${workspace}"}
+        cache_dir: {type: "directory", default: "/home/serebrya/.cache/huggingface/datasets"}
+  split_dataset:
+    entrypoint: "python3 /mlcube/huggingartists/tasks/split_dataset.py"
+    parameters:
+      inputs:
+        params: { type: "file", default: "params.yaml" }
+      outputs:
+        workspace_dir: { type: "directory", default: "${workspace}" }
+  finetune_model:
+    entrypoint: "python3 /mlcube/huggingartists/tasks/finetune_model.py"
+    parameters:
+      inputs:
+        params: { type: "file", default: "params.yaml" }
+      outputs:
+        workspace_dir: { type: "directory", default: "${workspace}" }
+        cache_dir: {type: "directory", default: "/home/serebrya/.cache/huggingface/hub"}
