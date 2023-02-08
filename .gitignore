@@ -15,4 +15,7 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-workspace/
+
+!workspace
+workspace/*
+!workspace/params.yaml

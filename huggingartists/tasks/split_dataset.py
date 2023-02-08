@@ -1,4 +1,5 @@
 import logging
+import os
 import random
 import typing as t
 from pathlib import Path
@@ -11,7 +12,7 @@ from huggingartists.utils import (ParameterSource, artist_workspace,
                                   default_param_file, get_params, init_loggers,
                                   load_mlcube_parameters)
 
-__all__ = ['split_dataset']
+__all__ = ["split_dataset"]
 logger = logging.getLogger("split_dataset")
 
 
@@ -23,6 +24,7 @@ def split_dataset(
         params,
         defaults={"artist_name": "Eminem", "random_seed": 100, "train_size": 0.85},
     )
+    os.environ.update(params.get("env", {}))
     logger.info("Task inputs: params=%s, workspace_dir=%s", params, workspace_dir)
 
     artist_workspace_dir = artist_workspace(workspace_dir, params["artist_name"])

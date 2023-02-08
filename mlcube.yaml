@@ -34,3 +34,11 @@ tasks:
       outputs:
         workspace_dir: { type: "directory", default: "${workspace}" }
         cache_dir: {type: "directory", default: "/home/serebrya/.cache/huggingface/hub"}
+  generate_lyrics:
+    entrypoint: "python3 /mlcube/huggingartists/tasks/generate_lyrics.py"
+    parameters:
+      inputs:
+        params: { type: "file", default: "params.yaml" }
+      outputs:
+        workspace_dir: { type: "directory", default: "${workspace}" }
+        cache_dir: { type: "directory", default: "/home/serebrya/.cache/huggingface/hub" }

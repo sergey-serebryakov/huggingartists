@@ -1,0 +1,83 @@
+# Parameters common for all tasks
+base:
+  artist_name: "Eminem"
+  random_seed: 100
+
+# `create_dataset` task: download or create raw dataset of song lyrics.
+create_dataset:
+  # Hugging Face namespace (user or organization) to look for previously created datasets.
+  huggingface_namespace: "huggingartists"
+  # Token to access song lyrics (https://docs.genius.com/). This token is from the original implementation:
+  #     https://colab.research.google.com/github/AlekseyKorshuk/huggingartists/blob/master/huggingartists-demo.ipynb
+  # This is only used when a datasets for ${base.artist_name} is not found in Hugging Face hub.
+  genius_access_token: "q_JK_BFy9OMiG7fGTzL-nUto9JDv3iXI24aYRrQnkOvjSCSbY4BuFIindweRsr5I"
+
+
+# `split_dataset` task: split raw dataset into train/validation sets.
+split_dataset:
+  train_size: 0.85
+
+
+# `finetune_model` task: finetune a model.
+finetune_model:
+  base_model: "gpt2"      # Pre-trained model in Hugging Face hub.
+  use_gpu: true           # If true, one GPU will be used.
+  evaluate: true          # If true, after training trainer.evaluate() is called.
+
+  # These arguments are passed as is to `transformers.training_args.TrainingArguments`
+  training_arguments:
+    max_steps: -1
+    num_train_epochs: 50
+    learning_rate: 1.372e-4
+    weight_decay: 0.01
+    seed: ${base.random_seed}
+    overwrite_output_dir: false
+    evaluation_strategy: "epoch"
+    save_total_limit: 10
+    save_strategy: "epoch"
+    save_steps: 1
+    report_to: ["mlflow"]
+    logging_steps: 5
+    do_eval: true
+    eval_steps: 1
+    load_best_model_at_end: false
+
+  # These are passed as is to `trainer.model.config.task_specific_params`
+  task_specific_params:
+    text-generation:
+      do_sample: true
+      min_length: 100
+      max_length: 200
+      temperature: 1.0
+      top_p: 0.95
+
+  # Environment variables for this tasks.
+  env:
+    # MLflow parameters for Hugging Face integration.
+    DISABLE_MLFLOW_INTEGRATION: "false"
+    HF_MLFLOW_LOG_ARTIFACTS: "false"
+    MLFLOW_EXPERIMENT_NAME: "hugging_artist_${base.artist_name}"
+    MLFLOW_TAGS: "{}"
+    MLFLOW_FLATTEN_PARAMS: "false"
+
+
+# `generate_song` task: generate song lyrics using user prompts
+generate_lyrics:
+  base_model: "gpt2"     # This is needed to load tokenizer. Better options?
+  use_gpu: true
+  checkpoint:            # Model checkpoint to use. Keep none to select the latest one (checkpoint-XXX).
+
+  # Configuration parameters for the `model.generate` method (passed as is).
+  generate_config:
+    num_return_sequences:  1     # Generate this many songs for each prompt.
+    min_length: 100
+    max_length: 160
+    temperature: 1.0
+    top_p: 0.95
+    top_k: 50
+    repetition_penalty: 1.0
+    do_sample: true
+
+  # Replace or more lyrics prompts.
+  prompts:
+    - "I am"

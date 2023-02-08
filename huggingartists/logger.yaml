@@ -11,6 +11,10 @@ handlers:
     filename: "hugging_artist.log"
 loggers:
   "": {level: "INFO", handlers: ["file_handler"]}
+  # MLCube tasks
   create_dataset: {level: "NOTSET", propagate: "yes"}
   split_dataset: {level: "NOTSET", propagate: "yes"}
   finetune_model: {level: "NOTSET", propagate: "yes"}
+  # Hugging Face
+  transformers: {level: "NOTSET", propagate: "yes"}
+  datasets: {level: "NOTSET", propagate: "yes"}

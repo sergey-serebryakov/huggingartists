@@ -1,9 +1,11 @@
 import copy
 import json
+import os
 import typing as t
 from pathlib import Path
 
 import yaml
+from omegaconf import DictConfig, OmegaConf
 
 __all__ = [
     "ParameterSource",
@@ -14,7 +16,9 @@ __all__ = [
     "artist_workspace",
     "default_param_file",
     "load_mlcube_parameters",
+    "update_attributes",
     "init_loggers",
+    "init_environment",
 ]
 
 ParameterSource = t.Union[t.Dict, str, Path]
@@ -65,7 +69,15 @@ def artist_workspace(
 
 
 def load_mlcube_parameters(param_file: t.Union[str, Path], task_name: str) -> t.Dict:
-    mlcube_params = _load_from_file(param_file)
+    _params: DictConfig = OmegaConf.load(param_file)
+    assert isinstance(_params, DictConfig), f"Invalid param file ({param_file})."
+
+    OmegaConf.resolve(_params)
+    mlcube_params: t.Dict = OmegaConf.to_object(_params)
+    assert isinstance(
+        mlcube_params, dict
+    ), f"Unexpected type ({type(mlcube_params)}). Should be dict."
+
     task_params = mlcube_params.get("base", None) or {}
     task_params.update(mlcube_params.get(task_name, None) or {})
     return task_params
@@ -81,6 +93,21 @@ def init_loggers(log_dir: t.Optional[t.Union[str, Path]] = None) -> None:
         Path(log_dir) / log_config["handlers"]["file_handler"]["filename"]
     ).as_posix()
     logging.config.dictConfig(log_config)
+
+
+def init_environment(params: t.Dict) -> None:
+    for name, value in params.items():
+        if name.startswith("env."):
+            os.environ[name[4:]] = str(value)
+
+
+def update_attributes(obj: t.Any, params: t.Dict, namespace: str) -> None:
+    if not namespace.endswith("."):
+        namespace = namespace + "."
+    namespace_len = len(namespace)
+    for name, value in params.items():
+        if name.startswith(namespace):
+            setattr(obj, name[namespace_len:], value)
 
 
 def _load_from_file(path: t.Union[str, Path]) -> t.Dict:

@@ -1,22 +1,23 @@
 import logging
+import os
 import typing as t
 from functools import partial
 from pathlib import Path
 
 import click
 import torch
-import yaml
 from datasets import DatasetDict
 from transformers import (AutoModelForCausalLM, AutoTokenizer, PreTrainedModel,
                           PreTrainedTokenizerBase, Trainer, TrainingArguments,
                           get_cosine_schedule_with_warmup)
+from transformers.integrations import is_mlflow_available
 from transformers.utils.hub import default_cache_path
 
 from huggingartists.utils import (ParameterSource, artist_workspace,
                                   default_param_file, get_params, get_path,
                                   init_loggers, load_mlcube_parameters)
 
-__all__ = ['finetune_model']
+__all__ = ["finetune_model"]
 logger = logging.getLogger("finetune_model")
 
 
@@ -29,14 +30,11 @@ def finetune_model(
         params,
         defaults={
             "artist_name": "Eminem",
-            "random_seed": 100,
             "base_model": "gpt2",
-            "train_arg.num_epochs": 1,
-            "train_arg.learning_rate": 1.372e-4,
-            "train_arg.weight_decay": 0.01,
-            "train_env.use_gpu": True,
+            "use_gpu": True,
         },
     )
+    os.environ.update(params.get("env", {}))
     logger.info(
         "Task inputs: params=%s, workspace_dir=%s, cache_dir=%s",
         params,
@@ -47,10 +45,27 @@ def finetune_model(
     artist_workspace_dir = artist_workspace(workspace_dir, params["artist_name"])
     cache_dir = get_path(cache_dir, default_cache_path)
     logger.info(
-        "Artist working directory: %s. HF hub cache directory: %s",
+        "Artist working directory: %s. HF transformers cache directory: %s",
         artist_workspace_dir,
         cache_dir,
     )
+
+    model_dir = artist_workspace_dir / "model"
+    model_dir.mkdir(parents=True, exist_ok=True)
+
+    training_args = TrainingArguments(
+        output_dir=model_dir.as_posix(), **params.get("training_arguments", {})
+    )
+
+    if "mlflow" in training_args.report_to and is_mlflow_available():
+        if not os.environ.get("MLFLOW_TRACKING_URI", None):
+            os.environ["MLFLOW_TRACKING_URI"] = (model_dir / "mlruns").as_uri()
+        logger.info(
+            "MLflow integration is enabled (tracking_uri=%s).",
+            os.environ["MLFLOW_TRACKING_URI"],
+        )
+    else:
+        logger.warning("MLflow integration is not enabled.")
 
     tokenizer: PreTrainedTokenizerBase = AutoTokenizer.from_pretrained(
         params["base_model"], cache_dir=cache_dir
@@ -58,15 +73,14 @@ def finetune_model(
     model: PreTrainedModel = AutoModelForCausalLM.from_pretrained(
         params["base_model"], cache_dir=cache_dir
     )
-    dataset: DatasetDict = DatasetDict.load_from_disk(artist_workspace_dir / "dataset")
-
-    if params["train_env.use_gpu"]:
+    if params["use_gpu"]:
         if torch.cuda.is_available():
             model = model.to("cuda")
         else:
-            logger.warning(
-                "The `train_env.use_gpu` is true but cuda is not available. Falling back to CPU device."
-            )
+            logger.warning("The `use_gpu` is true but cuda is not available. Falling back to CPU device.")
+
+    # Preprocess dataset
+    dataset: DatasetDict = DatasetDict.load_from_disk(artist_workspace_dir / "dataset")
 
     # Tokenized dataset will contain two features - `input_ids` and `attention_mask`.
     dataset: DatasetDict = dataset.map(
@@ -84,27 +98,6 @@ def finetune_model(
         num_proc=1,
     )
 
-    model_dir = artist_workspace_dir / "model"
-    model_dir.mkdir(parents=True, exist_ok=True)
-
-    training_args = TrainingArguments(
-        output_dir=model_dir.as_posix(),
-        overwrite_output_dir=True,
-        evaluation_strategy="epoch",
-        learning_rate=params["train_arg.learning_rate"],
-        weight_decay=params["train_arg.weight_decay"],
-        num_train_epochs=params["train_arg.num_epochs"],
-        save_total_limit=10,
-        save_strategy="epoch",
-        save_steps=1,
-        report_to=None,
-        seed=params["random_seed"],
-        logging_steps=5,
-        do_eval=True,
-        eval_steps=1,
-        load_best_model_at_end=False,
-    )
-
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -118,21 +111,20 @@ def finetune_model(
         trainer.optimizer, num_warmup_steps=0, num_training_steps=num_train_steps
     )
 
-    trainer.model.config.task_specific_params["text-generation"] = {
-        "do_sample": True,
-        "min_length": 100,
-        "max_length": 200,
-        "temperature": 1.0,
-        "top_p": 0.95,
-    }
+    if params.get("task_specific_params", None):
+        task_specific_params: t.Dict = params["task_specific_params"]
+        for name, params in task_specific_params.items():
+            trainer.model.config.task_specific_params[name] = params
 
     if torch.has_cuda:
         torch.cuda.empty_cache()
+
+    logger.info("Training a model.")
     _ = trainer.train()
 
-    evaluation: t.Dict = trainer.evaluate()
-    with open(model_dir / "evaluation.txt", "wt") as fp:
-        yaml.dump(evaluation, fp)
+    if params.get("evaluate", False) is True:
+        logger.info("Evaluating a model.")
+        _ = trainer.evaluate()
 
 
 def _group_texts(examples, block_size: int) -> t.Dict:
@@ -144,7 +136,7 @@ def _group_texts(examples, block_size: int) -> t.Dict:
     total_length = (total_length // block_size) * block_size
     # Split by chunks of max_len.
     result = {
-        k: [v[i : i + block_size] for i in range(0, total_length, block_size)]
+        k: [v[i: i + block_size] for i in range(0, total_length, block_size)]
         for k, v in concatenated_examples.items()
     }
     result["labels"] = result["input_ids"].copy()
@@ -161,9 +153,14 @@ def run_task(
     cache_dir: t.Optional[str] = None,
 ) -> None:
     init_loggers(workspace_dir)
-    finetune_model(
-        load_mlcube_parameters(params, "finetune_model"), workspace_dir, cache_dir
-    )
+    try:
+        finetune_model(
+            load_mlcube_parameters(params, "finetune_model"), workspace_dir, cache_dir
+        )
+    except Exception as err:
+        logger.exception("Exception while executing `finetune_model` task")
+        print(f"Exception while executing `finetune_model` task: {err}")
+        raise
 
 
 if __name__ == "__main__":

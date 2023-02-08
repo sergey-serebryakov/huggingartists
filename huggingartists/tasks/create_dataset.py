@@ -19,8 +19,7 @@ from huggingartists.utils import (ParameterSource, artist_workspace,
                                   default_param_file, get_params, get_path,
                                   init_loggers, load_mlcube_parameters)
 
-
-__all__ = ['create_dataset']
+__all__ = ["create_dataset"]
 logger = logging.getLogger("create_dataset")
 
 
@@ -43,6 +42,7 @@ def create_dataset(
             "huggingface_namespace": HUGGINGFACE_NAMESPACE,
         },
     )
+    os.environ.update(params.get("env", {}))
     logger.info(
         "Task inputs: params=%s, workspace_dir=%s, cache_dir=%s",
         params,

@@ -20,3 +20,6 @@ jax                                     # JAX is Autograd and XLA, brought toget
                                         # learning research.
 jaxlib                                  # XLA library for JAX.
 git+https://github.com/google/flax.git  # A neural network library and ecosystem for JAX designed for flexibility.
+
+mlflow        # Report finetuning progress to MLflow.
+omegaconf     # Working with YAML configurations.
