@@ -107,20 +107,22 @@ def create_dataset(
         dataset = load_dataset(repo_id, cache_dir=cache_dir)
         dataset.save_to_disk(rawdata_dir)
         logger.info(
-            "Artist (%s) dataset has been fetched form HF hub (%s) and has been cached at %s.",
+            "Artist (%s) dataset has been fetched form HF hub (%s) and has been cached at %s. Dataset summary: %s",
             params["artist_name"],
             repo_id,
             cache_dir,
+            str({n: d.shape for n, d in dataset.items()})
         )
     except FileNotFoundError:
         # Need to build dataset from scratch using lyrics from genius website.
-        create_dataset_from_genius_lyrics(
+        shapes = create_dataset_from_genius_lyrics(
             artist.id, params["genius_access_token"], rawdata_dir
         )
         logger.info(
             "Artist (%s) dataset has been created using lyrics from Genius service. PS - dataset has not been pushed "
-            "to HF hub yet.",
+            "to HF hub yet. Dataset summary: %s",
             params["artist_name"],
+            str(shapes)
         )
 
 

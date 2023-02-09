@@ -1,3 +1,9 @@
-workspace/
-img/
-demo/
+# Git directory
+.git
+# Various python environments
+.env*
+# Workspace directory
+workspace
+# Other directories that are not needed in docker images
+img
+demo

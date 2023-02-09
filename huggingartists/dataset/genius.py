@@ -87,7 +87,7 @@ async def parse_lyrics(urls: t.List[str]):
 
 def create_dataset(
     artist_id: int, api_token: str, save_path: Path, skip_if_exists: bool = True
-) -> None:
+) -> t.Optional[t.Dict[str, t.Tuple[int, int]]]:
     if save_path.exists():
         if not save_path.is_dir():
             raise FileExistsError(
@@ -111,6 +111,8 @@ def create_dataset(
     # Need to have the `train` key here to make it compatible with existing HF datasets.
     dataset = DatasetDict({"train": Dataset.from_dict({"text": list(lyrics)})})
     dataset.save_to_disk(save_path)
+
+    return {n: d.shape for n, d in dataset.items()}
 
 
 def main():

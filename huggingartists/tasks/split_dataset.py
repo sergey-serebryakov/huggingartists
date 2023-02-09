@@ -65,6 +65,9 @@ def split_dataset(
         }
     )
     datasets.save_to_disk(dataset_dir)
+    logger.info(
+        "Total number of songs is %d. Dataset summary: %s.", len(songs), str({n: d.shape for n, d in datasets.items()})
+    )
 
 
 @click.command()

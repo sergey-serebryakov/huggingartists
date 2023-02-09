@@ -26,6 +26,7 @@ finetune_model:
 
   # These arguments are passed as is to `transformers.training_args.TrainingArguments`
   training_arguments:
+    run_name: "${base.artist_name}"
     max_steps: -1
     num_train_epochs: 50
     learning_rate: 1.372e-4

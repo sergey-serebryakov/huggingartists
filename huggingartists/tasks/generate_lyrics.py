@@ -70,24 +70,35 @@ def generate_lyrics(
             input_ids=encoded_prompt.to(model.device),
             **params.get('generate_config', {})
         )
-        sequences: t.List[t.List[str]] = _decode_sequences(tokenizer, encoded_sequences)
-        lyrics.append({"input": prompt, "output": sequences})
+        songs: t.List[t.List[str]] = _postprocess_songs(tokenizer, encoded_sequences)
+        lyrics.append({"prompt": prompt, "songs": songs})
 
-    with open(lyrics_dir / 'lyrics.yaml', 'wt') as fp:
-        yaml.dump(lyrics, fp)
+    with open(lyrics_dir / 'lyrics.txt', 'wt', encoding='utf-8') as fp:
+        for lyrics_group in lyrics:
+            fp.write(f"# Lyrics group (prompt = {lyrics_group['prompt']})\n")
+            for idx, song in enumerate(lyrics_group['songs']):
+                fp.write(f"## Prompt = {lyrics_group['prompt']}, song = {idx + 1}/{len(lyrics_group['songs'])}\n")
+                for line in song:
+                    fp.write(line + '\n')
+                fp.write('\n')
+            fp.write('\n')
 
 
-def _decode_sequences(tokenizer: PreTrainedTokenizerBase, encoded_sequences: torch.Tensor) -> t.List[t.List[str]]:
-    sequences: t.List[t.List[str]] = []
+def _postprocess_songs(tokenizer: PreTrainedTokenizerBase, encoded_sequences: torch.Tensor) -> t.List[t.List[str]]:
+    songs: t.List[t.List[str]] = []
     max_repeat = 2
 
     # decode and clean prediction
     for encoded_sequences in encoded_sequences:
-        sequence: str = tokenizer.decode(
+        song: str = tokenizer.decode(
             encoded_sequences.tolist(), clean_up_tokenization_spaces=True, skip_special_tokens=True
         )
-        sequence = re.sub(r"\n+", "\n", sequence.strip())
-        sequences.append(sequence.split('\n'))
+        song = re.sub(
+            r"\n+",
+            "\n",
+            song.strip().encode().decode(encoding="utf-8", errors="ignore")
+        )
+        songs.append(song.split('\n'))
         # Not sure what the following code does (raises index of range error sometimes).
         """
         lines: t.List[str] = sequence.split('\n')
@@ -105,7 +116,7 @@ def _decode_sequences(tokenizer: PreTrainedTokenizerBase, encoded_sequences: tor
         sequences.append('\n'.join(lines))
         """
 
-    return sequences
+    return songs
 
 
 @click.command()
