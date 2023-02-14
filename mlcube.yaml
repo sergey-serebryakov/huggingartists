@@ -18,7 +18,7 @@ tasks:
         params: {type: "file", default: "params.yaml"}
       outputs:
         workspace_dir: {type: "directory", default: "${workspace}"}
-        cache_dir: {type: "directory", default: "/home/serebrya/.cache/huggingface/datasets"}
+        cache_dir: {type: "directory", default: "~/.cache/huggingface/datasets"}
   split_dataset:
     entrypoint: "python3 /mlcube/huggingartists/tasks/split_dataset.py"
     parameters:
@@ -33,7 +33,7 @@ tasks:
         params: { type: "file", default: "params.yaml" }
       outputs:
         workspace_dir: { type: "directory", default: "${workspace}" }
-        cache_dir: {type: "directory", default: "/home/serebrya/.cache/huggingface/hub"}
+        cache_dir: {type: "directory", default: "~/.cache/huggingface/hub"}
   generate_lyrics:
     entrypoint: "python3 /mlcube/huggingartists/tasks/generate_lyrics.py"
     parameters:
@@ -41,4 +41,4 @@ tasks:
         params: { type: "file", default: "params.yaml" }
       outputs:
         workspace_dir: { type: "directory", default: "${workspace}" }
-        cache_dir: { type: "directory", default: "/home/serebrya/.cache/huggingface/hub" }
+        cache_dir: { type: "directory", default: "~/.cache/huggingface/hub" }

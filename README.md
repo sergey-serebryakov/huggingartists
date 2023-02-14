@@ -2,6 +2,10 @@
 
 ## MLCube
 
+> This example requires MLCube version > 0.0.8 that supports absolute paths in MLCube configuration files specified
+> with `~` and environment variables. As of 02.14.2023 the latest version is 0.0.8, and so in order to correctly run
+> this MLCube, please, install it (mlcube and mlcube-docker) from sources: https://github.com/mlcommons/mlcube.
+
 ```shell
 pip install mlcube mlcube-docker
 
